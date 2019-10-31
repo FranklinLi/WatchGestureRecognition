@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "493177470072",
+    "firebase_url": "https://watchme-7240b.firebaseio.com",
+    "project_id": "watchme-7240b",
+    "storage_bucket": "watchme-7240b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493177470072:android:64f40394edbb9d71fe418d",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "493177470072-slu3eo0as386js8o2f7ejsv639v65fhq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.myapplication",
+            "certificate_hash": "e0cbe0211bc52b7fa511481583ed6375d0f41d64"
+          }
+        },
+        {
+          "client_id": "493177470072-ujk3k4hi40kn1t0oiiumvsadgvsnhu9m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuS_rMuF9ccyNgHhWsH49Ep3MgkAgGhcQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "493177470072-ujk3k4hi40kn1t0oiiumvsadgvsnhu9m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

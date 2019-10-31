@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">WatchMe</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+    <string name="start">Start</string>
+    <string name="activity_sensor_selection">SensorSelection</string>
+    <string name="title_activity_timing_setting">TimingSetting</string>
+    <string name="title_activity_sensors_list">SensorsList</string>
+    <string name="sensor_name">sensor_name</string>
+    <string name="time">Time</string>
+    <string name="title_activity_time_settings">TimeSettingsActivity</string>
+    <string name="title_activity_timing">TimingActivity</string>
+    <string name="min">min</string>
+    <string name="title_activity_recording">RecordingActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="something_went_wrong">something went wrong</string>
+    <string name="title_activity_main_menu">MainMenuActivity</string>
+    <string name="action">_action_</string>
+    <string name="sensors">Sensors</string>
+    <string name="title_activity_recordings_list">RecordingsListActivity</string>
+    <string name="recording">recording ??</string>
+</resources>
