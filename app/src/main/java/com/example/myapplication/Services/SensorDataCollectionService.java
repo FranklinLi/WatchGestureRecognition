@@ -124,9 +124,8 @@ public class SensorDataCollectionService extends Service implements SensorEventL
                 || sensorType == Sensor.TYPE_GYROSCOPE
                 || sensorType == Sensor.TYPE_LIGHT || sensorType == Sensor.TYPE_ROTATION_VECTOR
                 || sensorType == Sensor.TYPE_LINEAR_ACCELERATION
-                || sensorType == Sensor.TYPE_ACCELEROMETER_UNCALIBRATED
                 || sensorType == Sensor.TYPE_PRESSURE || sensorType == Sensor.TYPE_STEP_DETECTOR
-                || sensorType == Sensor.TYPE_STEP_COUNTER || sensorType == Sensor.TYPE_GAME_ROTATION_VECTOR
+                || sensorType == Sensor.TYPE_STEP_COUNTER
                 || sensorType == Sensor.TYPE_PROXIMITY);
     }
 
@@ -147,6 +146,9 @@ public class SensorDataCollectionService extends Service implements SensorEventL
                 sendMessage(ii);
             }
             ii += 1;
+
+            
+
             // write timestamp
             outputStreams.get(event.sensor.getName())
                     .write(((event.timestamp / 1000000) + ",").getBytes());

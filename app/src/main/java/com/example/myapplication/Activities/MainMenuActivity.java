@@ -93,12 +93,11 @@ public class MainMenuActivity extends WearableActivity {
         List<String> sensorNames = new ArrayList<>();
         for(Sensor sensor: sensors) {
             if(sensor.getType() == Sensor.TYPE_ACCELEROMETER || sensor.getType() == Sensor.TYPE_GRAVITY
-                    || sensor.getType() == Sensor.TYPE_GYROSCOPE || sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD
+                    || sensor.getType() == Sensor.TYPE_GYROSCOPE
                     || sensor.getType() == Sensor.TYPE_LIGHT || sensor.getType() == Sensor.TYPE_ROTATION_VECTOR
                     || sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION
-                    || sensor.getType() == Sensor.TYPE_ACCELEROMETER_UNCALIBRATED
                     || sensor.getType() == Sensor.TYPE_PRESSURE || sensor.getType() == Sensor.TYPE_STEP_DETECTOR
-                    || sensor.getType() == Sensor.TYPE_STEP_COUNTER || sensor.getType() == Sensor.TYPE_GAME_ROTATION_VECTOR
+                    || sensor.getType() == Sensor.TYPE_STEP_COUNTER
                     || sensor.getType() == Sensor.TYPE_PROXIMITY) {
                 sensorsList.add(sensor.getType());
                 sensorNames.add(sensor.getName());
