@@ -144,10 +144,12 @@ public class SensorDataCollectionService extends Service implements SensorEventL
         try {
             if (ii % 1000 == 0) {
                 sendMessage(ii);
+                System.out.println(Thread.currentThread());
             }
             ii += 1;
 
-            
+
+
 
             // write timestamp
             outputStreams.get(event.sensor.getName())

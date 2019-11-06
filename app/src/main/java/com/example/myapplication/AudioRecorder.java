@@ -65,7 +65,12 @@ public class AudioRecorder {
                     System.out.println("Audio: " + Thread.currentThread().getName());
 
                     // write audio samples into the file
+                    int j = 0;
                     while (isRecording) {
+                        if (j % 1000 == 0) {
+                            System.out.println(Thread.currentThread());
+                        }
+                        j += 1;
                         writeAudioDataToFile(outputStream);
                     }
                 } catch (IOException e) {
