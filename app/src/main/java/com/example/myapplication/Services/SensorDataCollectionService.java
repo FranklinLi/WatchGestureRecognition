@@ -18,7 +18,9 @@ import android.util.Log;
 
 import com.example.myapplication.Activities.MainMenuActivity;
 import com.example.myapplication.Model.DataWriter;
+import com.example.myapplication.Model.DesiredSensorsList;
 import com.example.myapplication.Model.SettingsManager;
+import com.example.myapplication.SensorRecordingRunnable;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -54,12 +57,17 @@ public class SensorDataCollectionService extends Service implements SensorEventL
 
         startForeground(1, notification);
 
+
         // read settings (sensorsList, duration)
         HashMap<Integer, Boolean> sensorsList = (HashMap<Integer, Boolean>)
                 SettingsManager.loadSettings(getFilesDir(), SettingsManager.SENSORS);
 
         int duration = (int) SettingsManager
                 .loadSettings(getFilesDir(), SettingsManager.RECORDING_DURATION);
+
+//        SensorRecordingRunnable myRunnable = new SensorRecordingRunnable(sensorsList, getApplicationContext());
+//        Thread recordingThread = new Thread(myRunnable);
+//        recordingThread.start();
 
         if(sensorsList == null) {
             Log.e("Error: (DataCollectionService)", "No sensor list available");
@@ -100,33 +108,11 @@ public class SensorDataCollectionService extends Service implements SensorEventL
                 sensorManager.requestTriggerSensor(triggerEventListener, sensor);
                 continue;
             }
-            if(shouldRecord(sensor.getType())) {
+            if(DesiredSensorsList.shouldRecord(sensor.getType())) {
                 sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL, mSensorHandler);
             }
 
         }
-    }
-
-
-//    private boolean shouldRecord(int sensorType) {
-//        return (sensorType == Sensor.TYPE_ACCELEROMETER || sensorType == Sensor.TYPE_GRAVITY
-//                || sensorType == Sensor.TYPE_GYROSCOPE || sensorType == Sensor.TYPE_MAGNETIC_FIELD
-//                || sensorType == Sensor.TYPE_LIGHT || sensorType == Sensor.TYPE_ROTATION_VECTOR
-//                || sensorType == Sensor.TYPE_LINEAR_ACCELERATION
-//                || sensorType == Sensor.TYPE_ACCELEROMETER_UNCALIBRATED
-//                || sensorType == Sensor.TYPE_PRESSURE || sensorType == Sensor.TYPE_STEP_DETECTOR
-//                || sensorType == Sensor.TYPE_STEP_COUNTER || sensorType == Sensor.TYPE_GAME_ROTATION_VECTOR
-//                || sensorType == Sensor.TYPE_PROXIMITY);
-//    }
-
-    private boolean shouldRecord(int sensorType) {
-        return (sensorType == Sensor.TYPE_ACCELEROMETER || sensorType == Sensor.TYPE_GRAVITY
-                || sensorType == Sensor.TYPE_GYROSCOPE
-                || sensorType == Sensor.TYPE_LIGHT || sensorType == Sensor.TYPE_ROTATION_VECTOR
-                || sensorType == Sensor.TYPE_LINEAR_ACCELERATION
-                || sensorType == Sensor.TYPE_PRESSURE || sensorType == Sensor.TYPE_STEP_DETECTOR
-                || sensorType == Sensor.TYPE_STEP_COUNTER
-                || sensorType == Sensor.TYPE_PROXIMITY);
     }
 
     private void unregisterSensors() {
@@ -148,9 +134,7 @@ public class SensorDataCollectionService extends Service implements SensorEventL
             }
             ii += 1;
 
-
-
-
+            // Normal write
             // write timestamp
             outputStreams.get(event.sensor.getName())
                     .write(((event.timestamp / 1000000) + ",").getBytes());
@@ -166,6 +150,9 @@ public class SensorDataCollectionService extends Service implements SensorEventL
                     outputStreams.get(event.sensor.getName()).write("\n".getBytes());
                 }
             }
+
+            // AsyncTask write
+
 
         } catch (IOException e) {
             Log.e("Error (DataCollectionService)", "failure in writing into the file");
@@ -197,6 +184,9 @@ public class SensorDataCollectionService extends Service implements SensorEventL
         }
         return sensorNames;
     }
+
+
+
 
     @Override
     public void onDestroy() {

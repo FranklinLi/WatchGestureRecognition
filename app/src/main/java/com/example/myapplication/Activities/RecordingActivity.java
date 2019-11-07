@@ -1,5 +1,6 @@
 package com.example.myapplication.Activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -27,7 +28,9 @@ import com.example.myapplication.Model.LabelManager;
 import com.example.myapplication.Services.LocationLogService;
 import com.example.myapplication.R;
 import com.example.myapplication.Services.SensorDataCollectionService;
+import com.example.myapplication.Services.WifiLoggingService;
 
+import java.util.HashMap;
 import java.util.List;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -89,6 +92,34 @@ public class RecordingActivity extends WearableActivity {
 
             }
         };
+
+        Bundle bundle = this.getIntent().getExtras();
+        HashMap<String, Boolean> resourcePermissions = new HashMap<>();
+        if (bundle != null) {
+            resourcePermissions = (HashMap<String, Boolean>) bundle.getSerializable("permissions");
+
+        }
+
+
+
+        // wifi logging service
+        startService(new Intent(RecordingActivity.this.getApplicationContext(), WifiLoggingService.class));
+
+        // audio service
+        if (true && resourcePermissions.get(Manifest.permission.RECORD_AUDIO)) {
+            startService(new Intent(RecordingActivity.this.getApplicationContext(), AudioRecordingService.class));
+        }
+        // location service
+        if (true
+                && (resourcePermissions.get(Manifest.permission.ACCESS_COARSE_LOCATION)
+                || resourcePermissions.get(Manifest.permission.ACCESS_FINE_LOCATION))) {
+            startService(new Intent(RecordingActivity.this.getApplicationContext(), LocationLogService.class));
+        }
+
+        // sensors service
+        startService(new Intent(RecordingActivity.this.getApplicationContext(), SensorDataCollectionService.class));
+
+
         timer.start();
 
         // Enables Always-on

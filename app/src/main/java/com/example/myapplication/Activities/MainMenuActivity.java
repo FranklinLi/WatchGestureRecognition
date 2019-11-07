@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.myapplication.Adapters.ActionsListAdapter;
+import com.example.myapplication.Model.DesiredSensorsList;
 import com.example.myapplication.Services.AudioRecordingService;
 import com.example.myapplication.Services.LocationLogService;
 import com.example.myapplication.R;
@@ -54,6 +55,7 @@ public class MainMenuActivity extends WearableActivity {
             e.printStackTrace();
         }
 
+        System.out.println(Thread.currentThread());
         ArrayList<String> actions = new ArrayList<>();
         actions.add("Start");
         actions.add("Sensors");
@@ -92,13 +94,7 @@ public class MainMenuActivity extends WearableActivity {
         List<Integer> sensorsList = new ArrayList<>();
         List<String> sensorNames = new ArrayList<>();
         for(Sensor sensor: sensors) {
-            if(sensor.getType() == Sensor.TYPE_ACCELEROMETER || sensor.getType() == Sensor.TYPE_GRAVITY
-                    || sensor.getType() == Sensor.TYPE_GYROSCOPE
-                    || sensor.getType() == Sensor.TYPE_LIGHT || sensor.getType() == Sensor.TYPE_ROTATION_VECTOR
-                    || sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION
-                    || sensor.getType() == Sensor.TYPE_PRESSURE || sensor.getType() == Sensor.TYPE_STEP_DETECTOR
-                    || sensor.getType() == Sensor.TYPE_STEP_COUNTER
-                    || sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            if (DesiredSensorsList.shouldRecord(sensor.getType())) {
                 sensorsList.add(sensor.getType());
                 sensorNames.add(sensor.getName());
             }
@@ -131,31 +127,16 @@ public class MainMenuActivity extends WearableActivity {
             return;
         }
 
-        // disable heart-rate if permission is not granted
-
         // sensors service
         anyGrantedPermission = true;
-        startService(new Intent(MainMenuActivity.this.getApplicationContext(), SensorDataCollectionService.class));
-
-        // wifi logging service
-        startService(new Intent(MainMenuActivity.this.getApplicationContext(), WifiLoggingService.class));
-
-        // audio service
-        if (recordAudio && resourcePermissions.get(Manifest.permission.RECORD_AUDIO)) {
-            startService(new Intent(MainMenuActivity.this.getApplicationContext(), AudioRecordingService.class));
-            anyGrantedPermission = true;
-        }
-        // location service
-        if (recordLocation
-                && (resourcePermissions.get(Manifest.permission.ACCESS_COARSE_LOCATION)
-                || resourcePermissions.get(Manifest.permission.ACCESS_FINE_LOCATION))) {
-            startService(new Intent(MainMenuActivity.this.getApplicationContext(), LocationLogService.class));
-            anyGrantedPermission = true;
-        }
 
         if (anyGrantedPermission) {
-            startActivity(new Intent(MainMenuActivity.this.getApplicationContext(),
-                    RecordingActivity.class));
+            Intent intent = new Intent(MainMenuActivity.this.getApplicationContext(),
+                    RecordingActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("permissions", resourcePermissions);
+            intent.putExtras(bundle);
+            startActivity(intent);
         }
     }
 
