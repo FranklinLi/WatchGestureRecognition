@@ -39,6 +39,7 @@ public class AudioRecordingService extends Service {
         try {
             audioRecorder.start(DataWriter.createAudioFile());
         } catch (Exception e) {
+            stopSelf();
             Log.e("Error (AudioRecordingService)", "audio recording couldn't start");
             return START_STICKY;
         }

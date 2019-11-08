@@ -75,6 +75,7 @@ public class RecordingActivity extends WearableActivity {
                         SensorDataCollectionService.class));
                 stopService(new Intent(getApplicationContext(), AudioRecordingService.class));
                 stopService(new Intent (getApplicationContext(), LocationLogService.class));
+                stopService(new Intent (getApplicationContext(), WifiLoggingService.class));
                 startActivity(new Intent(getApplicationContext(), MainMenuActivity.class));
             }
         });

@@ -1,5 +1,6 @@
 package com.example.myapplication.Services;
 
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -19,6 +20,8 @@ import com.example.myapplication.Model.DataWriter;
 
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import androidx.core.app.NotificationCompat;
 
@@ -29,11 +32,8 @@ public class WifiLoggingService extends Service {
     private WiFiBroadcastReceiver wiFiBroadcastReceiver;
     private Handler wifiScanHandler;
     private FileOutputStream outputStream = null;
+    private boolean stopScanning = true;
 
-
-    public WifiLoggingService() {
-
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -49,10 +49,13 @@ public class WifiLoggingService extends Service {
 
         startForeground(1, notification);
 
+        stopScanning = false;
+
         // create the file
         try {
             outputStream = new FileOutputStream(DataWriter.createWifiLogFile());
         } catch (Exception e) {
+            stopSelf();
             Toast.makeText(this, "Error in creating location log file",
                     Toast.LENGTH_LONG).show();
             return START_STICKY;
@@ -61,27 +64,35 @@ public class WifiLoggingService extends Service {
         // setup wifi signal logging
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
+
         wiFiBroadcastReceiver = new WiFiBroadcastReceiver();
         registerReceiver(wiFiBroadcastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        startScan();
-        return START_STICKY;
-    }
 
-    public void startScan() {
         wifiScanHandler = new Handler();
-        wifiScanHandler.postDelayed(new Runnable() {
+        Thread thread = new Thread() {
             @Override
             public void run() {
-                wifiManager.startScan();
-                startScan();
+                try {
+                    while(!stopScanning) {
+                        System.out.println("wifi thread: " + Thread.currentThread());
+                        wifiManager.startScan();
+                        sleep(2*1000);
+                        //wifiScanHandler.post(this);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }, 2*1000);
+        };
+
+        thread.start();
+
+        return START_STICKY;
     }
 
     class WiFiBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            System.out.println("onReceive");
             scanResults = wifiManager.getScanResults();
             for (ScanResult scanResult : scanResults) {
                 if (outputStream != null) {
@@ -91,6 +102,7 @@ public class WifiLoggingService extends Service {
                         outputStream.write((scanResult.BSSID + ",").getBytes());
                         outputStream.write((scanResult.level + "\n").getBytes());
                     } catch (Exception e) {
+                        stopSelf();
                         Log.e("Error (LocationLogService)", "writing into the file failure");
                         e.printStackTrace();
                     }
@@ -112,8 +124,10 @@ public class WifiLoggingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopScanning = true;
         unregisterReceiver(wiFiBroadcastReceiver);
         // TODO: it is not getting unregistered
         wifiScanHandler.removeCallbacksAndMessages(null);
+        System.out.println("wifi logger onDestroy");
     }
 }

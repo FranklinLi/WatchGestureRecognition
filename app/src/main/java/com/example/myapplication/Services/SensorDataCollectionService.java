@@ -65,12 +65,10 @@ public class SensorDataCollectionService extends Service implements SensorEventL
         int duration = (int) SettingsManager
                 .loadSettings(getFilesDir(), SettingsManager.RECORDING_DURATION);
 
-//        SensorRecordingRunnable myRunnable = new SensorRecordingRunnable(sensorsList, getApplicationContext());
-//        Thread recordingThread = new Thread(myRunnable);
-//        recordingThread.start();
 
         if(sensorsList == null) {
             Log.e("Error: (DataCollectionService)", "No sensor list available");
+            stopSelf();
             return START_STICKY;
         }
 
@@ -78,10 +76,12 @@ public class SensorDataCollectionService extends Service implements SensorEventL
         try {
             outputStreams = DataWriter.createSensorFiles(_getSelectedSensors(sensorsList));
         } catch (Exception e) {
+            stopSelf();
             e.printStackTrace();
         }
 
         if(outputStreams == null) {
+            stopSelf();
             Log.e("Error: (DataCollectionService)", "sensor files creation failed");
             return START_STICKY;
         }
@@ -127,37 +127,38 @@ public class SensorDataCollectionService extends Service implements SensorEventL
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
-        try {
             if (ii % 1000 == 0) {
                 sendMessage(ii);
                 System.out.println(Thread.currentThread());
             }
             ii += 1;
+            new SensorEventLoggerTask().execute(event);
 
             // Normal write
             // write timestamp
-            outputStreams.get(event.sensor.getName())
-                    .write(((event.timestamp / 1000000) + ",").getBytes());
-            outputStreams.get(event.sensor.getName())
-                    .write((System.currentTimeMillis() + ",").getBytes());
-            // write sensor values
-            float[] values = event.values;
-            for (int i = 0; i < values.length; i++) {
-                outputStreams.get(sensor.getName()).write(Float.toString(values[i]).getBytes());
-                if (i != values.length - 1) {
-                    outputStreams.get(event.sensor.getName()).write(", ".getBytes());
-                } else {
-                    outputStreams.get(event.sensor.getName()).write("\n".getBytes());
-                }
-            }
+//            long t = System.currentTimeMillis();
+//            outputStreams.get(event.sensor.getName())
+//                    .write(((event.timestamp / 1000000) + ",").getBytes());
+//            outputStreams.get(event.sensor.getName())
+//                    .write((System.currentTimeMillis() + ",").getBytes());
+//            // write sensor values
+//            float[] values = event.values;
+//            for (int i = 0; i < values.length; i++) {
+//                outputStreams.get(sensor.getName()).write(Float.toString(values[i]).getBytes());
+//                if (i != values.length - 1) {
+//                    outputStreams.get(event.sensor.getName()).write(", ".getBytes());
+//                } else {
+//                    outputStreams.get(event.sensor.getName()).write("\n".getBytes());
+//
+//                }
+//            }
 
-            // AsyncTask write
 
 
-        } catch (IOException e) {
-            Log.e("Error (DataCollectionService)", "failure in writing into the file");
-            e.printStackTrace();
-        }
+//        } catch (IOException e) {
+//            stopSelf();
+//            Log.e("Error (DataCollectionService)", "failure in writing into the file");
+//            e.printStackTrace()
     }
 
     @Override
@@ -242,10 +243,7 @@ public class SensorDataCollectionService extends Service implements SensorEventL
             SensorEvent event = events[0];
             Sensor sensor = event.sensor;
             try {
-                if (ii % 500 == 0) {
-                    System.out.println(ii);
-                }
-                ii += 1;
+                System.out.println("wrting: " + Thread.currentThread());
                 // write timestamp
                 outputStreams.get(sensor.getName())
                         .write(((event.timestamp / 1000000) + ",").getBytes());
@@ -261,9 +259,9 @@ public class SensorDataCollectionService extends Service implements SensorEventL
                         outputStreams.get(sensor.getName()).write("\n".getBytes());
                     }
                 }
-
             } catch (IOException e) {
-                Log.e("Error (DataCollectionService)", "failure in writing into the file");
+                Log.e("Error (DataCollectionService)",
+                        "failure in writing into the file (onTrigger)");
                 e.printStackTrace();
             }
             return null;

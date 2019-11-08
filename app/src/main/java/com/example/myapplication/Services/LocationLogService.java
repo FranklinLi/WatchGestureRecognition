@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -41,7 +43,7 @@ public class LocationLogService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e(TAG, "onStartCommand");
+        Log.e(TAG, "onStartCommand (Location)");
 
 
         Intent notificationIntent = new Intent(this, MainMenuActivity.class);
@@ -59,6 +61,7 @@ public class LocationLogService extends Service {
         try {
             outputStream = new FileOutputStream(DataWriter.createLocationLogFile());
         } catch (Exception e) {
+            stopSelf();
             Toast.makeText(this, "Error in creating location log file",
                     Toast.LENGTH_LONG).show();
             return START_STICKY;
@@ -67,24 +70,35 @@ public class LocationLogService extends Service {
         // location manager initialization
         initializeLocationManager();
 
+
+        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+        handlerThread.start();
+        // Now get the Looper from the HandlerThread
+        // NOTE: This call will block until the HandlerThread gets control and initializes its Looper
+        Looper looper = handlerThread.getLooper();
+
         // build the location request
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[0]);
+                    mLocationListeners[0], looper);
         } catch (SecurityException ex) {
+            stopSelf();
             Log.i(TAG, "fail to request location update, ignore", ex);
         } catch (IllegalArgumentException ex) {
+            stopSelf();
             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
         }
 
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[1]);
+                    mLocationListeners[1], looper);
         } catch (java.lang.SecurityException ex) {
+            stopSelf();
             Log.i(TAG, "fail to request location update, ignore", ex);
         } catch (IllegalArgumentException ex) {
+            stopSelf();
             Log.d(TAG, "network provider does not exist, " + ex.getMessage());
         }
 
@@ -96,15 +110,6 @@ public class LocationLogService extends Service {
         Log.e(TAG, "onCreate");
     }
 
-
-    // Supposing that your value is an integer declared somewhere as: int myInteger;
-    private void sendMessage() {
-        // The string "my-integer" will be used to filer the intent
-        Intent intent = new Intent("service_crash");
-        // Adding some data
-        intent.putExtra("message", "location_service_destroyed");
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
 
     @Override
     public void onDestroy() {
@@ -119,8 +124,6 @@ public class LocationLogService extends Service {
                 }
             }
         }
-        //sendMessage();
-        //Toast.makeText(getApplicationContext(), "location", Toast.LENGTH_LONG).show();
 
     }
 
@@ -143,10 +146,12 @@ public class LocationLogService extends Service {
         public void onLocationChanged(Location location) {
             Log.e(TAG, "onLocationChanged: " + location);
 
+            System.out.println("location thread" + Thread.currentThread());
+
             if (outputStream != null) {
                 try {
-                    outputStream.write((System.currentTimeMillis() + ", ").getBytes());
-                    outputStream.write((location.getLatitude() + ", ").getBytes());
+                    outputStream.write((System.currentTimeMillis() + ",").getBytes());
+                    outputStream.write((location.getLatitude() + ",").getBytes());
                     outputStream.write((location.getLongitude() + "\n").getBytes());
                 } catch (Exception e) {
                     Log.e("Error (LocationLogService)", "writing into the file failure");
