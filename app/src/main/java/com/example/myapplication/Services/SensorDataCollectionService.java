@@ -243,7 +243,6 @@ public class SensorDataCollectionService extends Service implements SensorEventL
             SensorEvent event = events[0];
             Sensor sensor = event.sensor;
             try {
-                System.out.println("wrting: " + Thread.currentThread());
                 // write timestamp
                 outputStreams.get(sensor.getName())
                         .write(((event.timestamp / 1000000) + ",").getBytes());
